@@ -60,14 +60,14 @@ export function Platforms() {
     <section className="bg-white py-24 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-3">
-            Supported platforms
+          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-blue-600 mb-3">
+            supported platforms
           </p>
           <h2 className="text-4xl font-semibold tracking-tight text-gray-900">
             One idea. Three audiences. Zero extra work.
           </h2>
           <p className="mt-4 text-gray-500 max-w-xl mx-auto">
-            Each platform has its own grammar. FlowForge speaks all three fluently.
+            Each platform has its own grammar. SocialStudio.ai speaks all three fluently.
           </p>
         </div>
 
@@ -95,11 +95,11 @@ export function Platforms() {
               </ul>
 
               <div className="mt-auto rounded-xl bg-white border border-gray-100 p-3">
-                <p className="text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
-                  Example output
+                <p className="font-mono text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
+                  example output
                 </p>
                 <p className="text-sm text-gray-700 leading-relaxed italic">
-                  &ldquo;{p.example}&rdquo;
+                  "{p.example}"
                 </p>
               </div>
             </div>

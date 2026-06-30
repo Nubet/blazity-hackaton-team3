@@ -37,8 +37,8 @@ export function HowItWorks() {
     <section className="bg-white py-24 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-3">
-            How it works
+          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-blue-600 mb-3">
+            how it works
           </p>
           <h2 className="text-4xl font-semibold tracking-tight text-gray-900">
             From raw ideas to publish-ready in seconds.
@@ -54,7 +54,7 @@ export function HowItWorks() {
                 <div className="w-20 h-20 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
                   {step.icon}
                 </div>
-                <span className="absolute -top-2 -right-2 text-xs font-bold text-blue-600 bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 font-mono text-xs font-bold text-blue-600 bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center">
                   {step.number}
                 </span>
               </div>

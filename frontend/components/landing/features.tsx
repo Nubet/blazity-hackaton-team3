@@ -29,7 +29,7 @@ const features: Feature[] = [
     icon: <Clock size={24} weight="fill" className="text-blue-600" />,
     title: "Hours saved every week",
     description:
-      "Content teams spend 3–5 hours per week manually reformatting the same ideas for different channels. FlowForge cuts that to seconds.",
+      "Content teams spend 3–5 hours per week manually reformatting the same ideas for different channels. SocialStudio.ai cuts that to seconds.",
   },
   {
     icon: <CheckCircle size={24} weight="fill" className="text-blue-600" />,
@@ -44,15 +44,15 @@ export function Features() {
     <section className="bg-gray-50 py-24 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-3">
-            Features
+          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-blue-600 mb-3">
+            features
           </p>
           <h2 className="text-4xl font-semibold tracking-tight text-gray-900">
             Built to eliminate the busywork.
           </h2>
           <p className="mt-4 text-gray-500 max-w-xl mx-auto">
-            People who work with words drown in reformatting. FlowForge does the
-            mechanical work so you can focus on the ideas.
+            People who work with words drown in reformatting. SocialStudio.ai
+            does the mechanical work so you can focus on the ideas.
           </p>
         </div>
 

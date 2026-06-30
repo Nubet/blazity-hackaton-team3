@@ -3,20 +3,18 @@ import {
   ClockCounterClockwise,
   House,
   Megaphone,
-  Shapes,
 } from "@phosphor-icons/react/dist/ssr";
+import Image from "next/image";
+import Link from "next/link";
 import { SidebarNavItem } from "./sidebar-nav-item";
 
 export function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 z-10">
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        <div className="flex items-center gap-2 text-blue-600">
-          <Shapes size={24} weight="fill" />
-          <span className="font-bold text-lg text-gray-900 tracking-tight">
-            FlowForge
-          </span>
-        </div>
+        <Link href="/">
+          <Image src="/socialstudio.png" alt="socialstudio.ai" width={99} height={32} priority />
+        </Link>
       </div>
 
       <div className="p-4 flex-1 overflow-y-auto">
