@@ -56,6 +56,20 @@ tbody tr:last-child {
   border-bottom: none !important;
 }
 
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href],
+label[for],
+summary,
+select {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

@@ -297,7 +297,7 @@ export function CampaignStudio() {
           <button
             type="button"
             onClick={createContent}
-            className="mt-6 w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+            className="mt-6 w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 cursor-pointer"
           >
             <Sparkle size={16} weight="bold" />
             Utwórz treść posta
