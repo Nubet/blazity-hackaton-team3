@@ -61,7 +61,7 @@ if curl -fsS http://localhost:3000 >/dev/null 2>&1; then
 else
   FRONTEND_ALREADY_RUNNING=0
   echo "starting frontend dev server..."
-  (cd "$FRONTEND_DIR" && NEXT_PUBLIC_BACKEND_URL="${NEXT_PUBLIC_BACKEND_URL:-http://localhost:4000}" npm run dev -- --hostname 0.0.0.0) &
+  (cd "$FRONTEND_DIR" && BACKEND_URL="${BACKEND_URL:-http://localhost:4000}" npm run dev -- --hostname 0.0.0.0) &
   FRONTEND_PID=$!
 fi
 

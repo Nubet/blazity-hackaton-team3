@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import type { Platform, RefineAction } from "@/components/studio/content-engine";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000",
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL ?? "/api/backend",
   timeout: 60000,
 });
 
@@ -46,19 +46,19 @@ type ApiErrorPayload = {
 };
 
 export async function generatePosts(payload: GenerateRequest): Promise<GenerateResponse> {
-  const response = await api.post<GenerateResponse>("/api/v1/generate", payload);
+  const response = await api.post<GenerateResponse>("/generate", payload);
   return response.data;
 }
 
 export async function refinePost(payload: RefineRequest): Promise<RefineResponse> {
-  const response = await api.post<RefineResponse>("/api/v1/refine", payload);
+  const response = await api.post<RefineResponse>("/refine", payload);
   return response.data;
 }
 
 export async function uploadFiles(files: File[]): Promise<UploadResponse> {
   const formData = new FormData();
   for (const file of files) formData.append("files", file);
-  const response = await api.post<UploadResponse>("/api/v1/uploads", formData);
+  const response = await api.post<UploadResponse>("/uploads", formData);
   return response.data;
 }
 
