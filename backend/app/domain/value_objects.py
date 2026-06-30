@@ -7,14 +7,27 @@ from .exceptions import UnsupportedFileTypeError
 class Platform(StrEnum):
     LINKEDIN = "linkedin"
     INSTAGRAM = "instagram"
-    TWITTER = "twitter"
+    X = "x"
+
+    @property
+    def char_limit(self) -> int:
+        return _PLATFORM_CHAR_LIMITS[self]
 
 
-class CampaignStatus(StrEnum):
-    PENDING = "pending"
-    GENERATING = "generating"
-    COMPLETED = "completed"
-    FAILED = "failed"
+_PLATFORM_CHAR_LIMITS: dict[Platform, int] = {
+    Platform.LINKEDIN: 3000,
+    Platform.INSTAGRAM: 2200,
+    Platform.X: 280,
+}
+
+
+class RefineAction(StrEnum):
+    HOOK = "hook"
+    SHORTEN = "shorten"
+    FORMAL = "formal"
+    CASUAL = "casual"
+    CTA = "cta"
+    HASHTAGS = "hashtags"
 
 
 ALLOWED_IMAGE_TYPES: dict[str, str] = {

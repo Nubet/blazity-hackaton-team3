@@ -30,13 +30,7 @@ class EmptyFileError(DomainError):
         self.filename = filename
 
 
-class CampaignNotFoundError(DomainError):
-    def __init__(self, campaign_id) -> None:
-        super().__init__(f"Campaign '{campaign_id}' not found")
-        self.campaign_id = campaign_id
-
-
-class InvalidCampaignInputError(DomainError):
+class InvalidGenerateInputError(DomainError):
     def __init__(self, reason: str) -> None:
         super().__init__(reason)
         self.reason = reason
@@ -46,4 +40,12 @@ class ContentGenerationError(DomainError):
     def __init__(self, platform: str, reason: str) -> None:
         super().__init__(f"Generation failed for '{platform}': {reason}")
         self.platform = platform
+        self.reason = reason
+
+
+class RefineError(DomainError):
+    def __init__(self, platform: str, action: str, reason: str) -> None:
+        super().__init__(f"Refine '{action}' failed for '{platform}': {reason}")
+        self.platform = platform
+        self.action = action
         self.reason = reason
