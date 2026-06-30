@@ -6,20 +6,28 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
 from app.domain.exceptions import (
+    ContentGenerationError,
     EmptyFileError,
     FileTooLargeError,
+    InvalidCampaignInputError,
     TooManyFilesError,
     UnsupportedFileTypeError,
 )
+from app.infrastructure.db.models import Base
 from app.interface.api.v1.router import api_router
 from app.interface.dependencies import _database, _storage
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    settings = get_settings()
+    db = _database()
+    if settings.db_reset_on_start:
+        await db.drop_all(Base.metadata)
+    await db.create_all(Base.metadata)
     await _storage().ensure_bucket()
     yield
-    await _database().dispose()
+    await db.dispose()
 
 
 def create_app() -> FastAPI:
@@ -64,6 +72,20 @@ def create_app() -> FastAPI:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": str(exc), "code": "empty_file"},
+        )
+
+    @app.exception_handler(InvalidCampaignInputError)
+    async def _invalid_campaign(_: Request, exc: InvalidCampaignInputError) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": str(exc), "code": "invalid_campaign_input"},
+        )
+
+    @app.exception_handler(ContentGenerationError)
+    async def _gen_error(_: Request, exc: ContentGenerationError) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            content={"detail": str(exc), "code": "content_generation_failed"},
         )
 
     @app.get("/health", tags=["meta"])
