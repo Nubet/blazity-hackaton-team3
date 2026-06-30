@@ -28,3 +28,22 @@ class EmptyFileError(DomainError):
     def __init__(self, filename: str) -> None:
         super().__init__(f"File '{filename}' is empty")
         self.filename = filename
+
+
+class CampaignNotFoundError(DomainError):
+    def __init__(self, campaign_id) -> None:
+        super().__init__(f"Campaign '{campaign_id}' not found")
+        self.campaign_id = campaign_id
+
+
+class InvalidCampaignInputError(DomainError):
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
+class ContentGenerationError(DomainError):
+    def __init__(self, platform: str, reason: str) -> None:
+        super().__init__(f"Generation failed for '{platform}': {reason}")
+        self.platform = platform
+        self.reason = reason

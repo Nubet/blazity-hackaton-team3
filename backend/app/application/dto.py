@@ -20,3 +20,25 @@ class UploadedFileView:
     size_bytes: int
     url: str
     created_at: datetime
+
+
+@dataclass
+class GeneratedContentView:
+    id: UUID
+    platform: str
+    copy: str
+    hashtags: list[str]
+    asset_curation: str
+    created_at: datetime
+
+
+@dataclass
+class CampaignView:
+    id: UUID
+    raw_text: str
+    platforms: list[str]
+    file_ids: list[UUID]
+    status: str
+    error: str | None
+    generated: list[GeneratedContentView]
+    created_at: datetime

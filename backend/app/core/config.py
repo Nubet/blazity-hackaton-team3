@@ -23,6 +23,13 @@ class Settings(BaseSettings):
     upload_max_files: int = Field(default=10, ge=1, le=100)
     upload_max_file_bytes: int = Field(default=10 * 1024 * 1024, ge=1)
 
+    db_reset_on_start: bool = False
+
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-sonnet-4-6"
+    anthropic_max_tokens: int = 8192
+    anthropic_temperature: float = 0.9
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
