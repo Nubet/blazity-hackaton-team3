@@ -1,24 +1,17 @@
-import { DashboardShell } from "@/components/layout/dashboard-shell";
-import { BrainDumpSection } from "@/components/sections/brain-dump-section";
-import { LiveSelectionSection } from "@/components/sections/live-selection-section";
-import { TargetLockSection } from "@/components/sections/target-lock-section";
+import { Hero } from "@/components/hero";
+import { HowItWorks } from "@/components/landing/how-it-works";
+import { Features } from "@/components/landing/features";
+import { Platforms } from "@/components/landing/platforms";
+import { CtaSection } from "@/components/landing/cta";
 
-export default function Page() {
+export default function LandingPage() {
   return (
-    <DashboardShell>
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
-          New AI Campaign
-        </h1>
-        <p className="text-sm text-gray-500">
-          Configure target platforms and provide raw input for contextual
-          processing.
-        </p>
-      </div>
-
-      <TargetLockSection />
-      <BrainDumpSection />
-      <LiveSelectionSection />
-    </DashboardShell>
+    <main>
+      <Hero />
+      <HowItWorks />
+      <Features />
+      <Platforms />
+      <CtaSection />
+    </main>
   );
 }
