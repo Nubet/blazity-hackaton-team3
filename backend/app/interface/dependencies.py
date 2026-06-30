@@ -4,7 +4,17 @@ from functools import lru_cache
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.application.ports import FileRepository, ObjectStorage
+from app.application.ports import (
+    CampaignRepository,
+    ContentGenerator,
+    FileRepository,
+    ObjectStorage,
+)
+from app.application.use_cases.generate_campaign import (
+    GenerateCampaignUseCase,
+    GetCampaignUseCase,
+    ListCampaignsUseCase,
+)
 from app.application.use_cases.upload_files import (
     DeleteFileUseCase,
     GetFileUseCase,
@@ -12,7 +22,11 @@ from app.application.use_cases.upload_files import (
     UploadLimits,
 )
 from app.core.config import Settings, get_settings
-from app.infrastructure.db.repositories import SqlAlchemyFileRepository
+from app.infrastructure.ai.anthropic_client import AnthropicContentGenerator
+from app.infrastructure.db.repositories import (
+    SqlAlchemyCampaignRepository,
+    SqlAlchemyFileRepository,
+)
 from app.infrastructure.db.session import Database
 from app.infrastructure.storage.minio_storage import MinioObjectStorage
 
@@ -79,3 +93,47 @@ def get_delete_use_case(
     repo: FileRepository = Depends(get_file_repository),
 ) -> DeleteFileUseCase:
     return DeleteFileUseCase(storage=storage, repository=repo)
+
+
+@lru_cache
+def _content_generator() -> AnthropicContentGenerator:
+    s = get_settings()
+    return AnthropicContentGenerator(
+        api_key=s.anthropic_api_key,
+        model=s.anthropic_model,
+        max_tokens=s.anthropic_max_tokens,
+        temperature=s.anthropic_temperature,
+    )
+
+
+def get_content_generator() -> ContentGenerator:
+    return _content_generator()
+
+
+def get_campaign_repository(
+    session: AsyncSession = Depends(get_session),
+) -> CampaignRepository:
+    return SqlAlchemyCampaignRepository(session)
+
+
+def get_generate_campaign_use_case(
+    generator: ContentGenerator = Depends(get_content_generator),
+    campaigns: CampaignRepository = Depends(get_campaign_repository),
+    files: FileRepository = Depends(get_file_repository),
+    storage: ObjectStorage = Depends(get_object_storage),
+) -> GenerateCampaignUseCase:
+    return GenerateCampaignUseCase(
+        generator=generator, campaigns=campaigns, files=files, storage=storage
+    )
+
+
+def get_get_campaign_use_case(
+    campaigns: CampaignRepository = Depends(get_campaign_repository),
+) -> GetCampaignUseCase:
+    return GetCampaignUseCase(campaigns=campaigns)
+
+
+def get_list_campaigns_use_case(
+    campaigns: CampaignRepository = Depends(get_campaign_repository),
+) -> ListCampaignsUseCase:
+    return ListCampaignsUseCase(campaigns=campaigns)
