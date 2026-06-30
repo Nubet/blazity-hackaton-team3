@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,10 +8,15 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "FlowForge — Platform-First SaaS Dashboard",
+  title: "socialstudio.ai — AI-Powered Content Repurposing",
   description:
-    "Configure target platforms and provide raw input for contextual AI processing.",
+    "Paste your raw ideas. Pick a platform. Get a finished post tailored for LinkedIn, Instagram, or X.",
 };
 
 export default function RootLayout({
@@ -20,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl" className={`${inter.variable} min-h-full antialiased`}>
+    <html lang="pl" className={`${inter.variable} ${geistMono.variable} min-h-full antialiased`}>
       <body className="min-h-screen text-gray-900">
         {children}
       </body>
