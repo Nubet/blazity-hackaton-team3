@@ -22,12 +22,27 @@ Bucket `flowforge-uploads` is auto-created on startup. DB schema is auto-created
 `backend/.env` (gitignored):
 
 ```
+AI_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-...
 ANTHROPIC_MODEL=claude-sonnet-4-6
 ANTHROPIC_MAX_TOKENS=8192
 ANTHROPIC_TEMPERATURE=0.9
 DB_RESET_ON_START=true
 ```
+
+Switch to OpenRouter at any time by changing env and restarting the backend:
+
+```
+AI_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-...
+OPENROUTER_MODEL=anthropic/claude-sonnet-4.5
+OPENROUTER_MAX_TOKENS=8192
+OPENROUTER_TEMPERATURE=0.9
+OPENROUTER_SITE_URL=http://localhost:3000
+OPENROUTER_APP_NAME=FlowForge
+```
+
+Both providers implement the same `ContentGenerator` port, so `/api/v1/generate` and `/api/v1/refine` do not change.
 
 ## Endpoints
 
