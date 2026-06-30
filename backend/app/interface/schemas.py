@@ -1,7 +1,12 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
+
+
+PlatformLiteral = Literal["linkedin", "instagram", "x"]
+RefineActionLiteral = Literal["hook", "shorten", "formal", "casual", "cta", "hashtags"]
 
 
 class UploadedFileResponse(BaseModel):
@@ -22,33 +27,30 @@ class ErrorResponse(BaseModel):
     code: str
 
 
-class GenerateCampaignRequest(BaseModel):
-    raw_text: str = Field(default="", description="Free-form brief from the user")
-    platforms: list[str] = Field(..., min_length=1, description="linkedin | instagram | twitter")
+class GenerateRequest(BaseModel):
+    raw: str = Field(default="", description="Brudnopis użytkownika (PL)")
+    platforms: list[PlatformLiteral] = Field(
+        ..., min_length=1, description="linkedin | instagram | x"
+    )
     file_ids: list[UUID] = Field(default_factory=list)
 
 
-class GeneratedContentResponse(BaseModel):
-    model_config = ConfigDict(protected_namespaces=())
-
-    id: UUID
-    platform: str
-    copy: str
-    hashtags: list[str]
-    asset_curation: str
-    created_at: datetime
-
-
-class CampaignResponse(BaseModel):
-    id: UUID
-    raw_text: str
-    platforms: list[str]
-    file_ids: list[UUID]
-    status: str
-    error: str | None
-    generated: list[GeneratedContentResponse]
-    created_at: datetime
+class GenerateResponse(BaseModel):
+    posts: dict[str, str] = Field(
+        default_factory=dict,
+        description="Mapa platform -> gotowy post (PL, z \\n\\n, hashtagi w ostatniej linii)",
+    )
+    errors: dict[str, str] = Field(
+        default_factory=dict,
+        description="Mapa platform -> komunikat błędu (gdy generacja danej platformy padła)",
+    )
 
 
-class CampaignListResponse(BaseModel):
-    campaigns: list[CampaignResponse]
+class RefineRequest(BaseModel):
+    platform: PlatformLiteral
+    text: str = Field(..., min_length=1)
+    action: RefineActionLiteral
+
+
+class RefineResponse(BaseModel):
+    text: str

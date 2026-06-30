@@ -9,7 +9,8 @@ from app.domain.exceptions import (
     ContentGenerationError,
     EmptyFileError,
     FileTooLargeError,
-    InvalidCampaignInputError,
+    InvalidGenerateInputError,
+    RefineError,
     TooManyFilesError,
     UnsupportedFileTypeError,
 )
@@ -74,11 +75,11 @@ def create_app() -> FastAPI:
             content={"detail": str(exc), "code": "empty_file"},
         )
 
-    @app.exception_handler(InvalidCampaignInputError)
-    async def _invalid_campaign(_: Request, exc: InvalidCampaignInputError) -> JSONResponse:
+    @app.exception_handler(InvalidGenerateInputError)
+    async def _invalid_generate(_: Request, exc: InvalidGenerateInputError) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": str(exc), "code": "invalid_campaign_input"},
+            content={"detail": str(exc), "code": "invalid_generate_input"},
         )
 
     @app.exception_handler(ContentGenerationError)
@@ -86,6 +87,13 @@ def create_app() -> FastAPI:
         return JSONResponse(
             status_code=status.HTTP_502_BAD_GATEWAY,
             content={"detail": str(exc), "code": "content_generation_failed"},
+        )
+
+    @app.exception_handler(RefineError)
+    async def _refine_error(_: Request, exc: RefineError) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            content={"detail": str(exc), "code": "refine_failed"},
         )
 
     @app.get("/health", tags=["meta"])
