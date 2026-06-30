@@ -2,10 +2,12 @@
 
 ## What this repo is
 
-`blazity-hackaton` — an early-stage hackathon project. Today it is a scaffold:
-only README, LICENSE, and the Atlas AI workspace under `.ai/` exist; there is no
-application code yet. The intended product is an AI / agent application; concrete
-scope and tech stack are not yet decided. See `.ai/memory/` for stable context.
+`blazity-hackaton` — a hackathon project building an AI-powered content
+repurposing web app: the user provides raw materials, picks a target platform
+(LinkedIn, TikTok, YouTube, …), and the app generates a finished, platform-
+tailored post to copy and publish. Today it is still a scaffold — only README,
+LICENSE, and the Atlas AI workspace under `.ai/` exist; there is no application
+code yet. See `.ai/memory/` for stable context.
 
 ## Structure
 
@@ -16,10 +18,16 @@ scope and tech stack are not yet decided. See `.ai/memory/` for stable context.
 
 ## Working rules
 
-- No stack is chosen yet — confirm language, framework, and run/test/build
-  commands before assuming them. Update `.ai/memory/stack.md` once decided.
-- There are no project-specific safe commands yet beyond Atlas tooling:
-  `npx --yes @blazity-atlas/core@latest doctor` checks workspace health.
+- Stack: Next.js (App Router) + TypeScript, Tailwind + shadcn/ui, Anthropic
+  Claude via `@anthropic-ai/sdk`, no CMS. See `.ai/memory/stack.md` for detail.
+- No application code exists yet — there is no `package.json`. Scaffold the app
+  before assuming build/test commands work; the expected ones live in
+  `.ai/memory/stack.md`.
+- Run Claude calls server-side only (route handlers / Server Actions); never
+  expose the API key to the client. Default to the latest Claude models.
+- Workflow: GitHub flow — feature branches with Conventional Commits.
+- Code convention: no code comments (see `.ai/memory/stack.md`).
+- Atlas health check: `npx --yes @blazity-atlas/core@latest doctor`.
 - Do not edit the `<!-- BEGIN/END ATLAS -->` managed block below by hand.
 - Keep durable docs depersonalized (see Atlas Documentation Rules below).
 
