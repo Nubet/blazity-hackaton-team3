@@ -18,5 +18,13 @@ class Database:
         async with self._session_factory() as session:
             yield session
 
+    async def create_all(self, metadata) -> None:
+        async with self._engine.begin() as conn:
+            await conn.run_sync(metadata.create_all)
+
+    async def drop_all(self, metadata) -> None:
+        async with self._engine.begin() as conn:
+            await conn.run_sync(metadata.drop_all)
+
     async def dispose(self) -> None:
         await self._engine.dispose()

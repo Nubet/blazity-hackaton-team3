@@ -15,9 +15,7 @@ COPY pyproject.toml ./
 RUN pip install --upgrade pip && pip install .
 
 COPY app ./app
-COPY migrations ./migrations
-COPY alembic.ini ./alembic.ini
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT:-4000}"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT:-4000}"]
