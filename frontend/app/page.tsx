@@ -1,10 +1,17 @@
-import { DashboardShell } from "@/components/layout/dashboard-shell";
-import { CampaignStudio } from "@/components/studio/campaign-studio";
+import { Hero } from "@/components/hero";
+import { HowItWorks } from "@/components/landing/how-it-works";
+import { Features } from "@/components/landing/features";
+import { Platforms } from "@/components/landing/platforms";
+import { CtaSection } from "@/components/landing/cta";
 
-export default function Page() {
+export default function LandingPage() {
   return (
-    <DashboardShell>
-      <CampaignStudio />
-    </DashboardShell>
+    <main>
+      <Hero />
+      <HowItWorks />
+      <Features />
+      <Platforms />
+      <CtaSection />
+    </main>
   );
 }
