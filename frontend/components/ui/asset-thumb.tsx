@@ -28,6 +28,14 @@ export function AssetThumb(props: ImageThumb | MemeThumb) {
   const positionClass =
     props.objectPosition === "top" ? "object-cover object-top" : "object-cover";
 
+  if (props.src.startsWith("blob:") || props.src.startsWith("http://localhost")) {
+    return (
+      <div className="relative rounded-md overflow-hidden border border-gray-200 aspect-video">
+        <img src={props.src} alt={props.alt} className={`h-full w-full ${positionClass}`} />
+      </div>
+    );
+  }
+
   return (
     <div className="relative rounded-md overflow-hidden border border-gray-200 aspect-video">
       <Image

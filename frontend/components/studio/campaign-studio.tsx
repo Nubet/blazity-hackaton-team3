@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Check,
   CheckCircle,
@@ -18,14 +18,18 @@ import { PlatformIconBadge } from "@/components/ui/platform-icon-badge";
 import { StepHeader } from "@/components/ui/step-header";
 import { PlatformPreview } from "./platform-preview";
 import {
-  composePost,
-  extractCore,
   PLATFORM_META,
   PLATFORM_ORDER,
-  refine,
   type Platform,
   type RefineAction,
 } from "./content-engine";
+import {
+  generatePosts,
+  getApiErrorMessage,
+  refinePost,
+  uploadFiles,
+  type UploadedFile,
+} from "@/lib/flowforge-api";
 
 const DEMO_IMAGE: Record<Platform, string | undefined> = {
   linkedin:
@@ -34,6 +38,36 @@ const DEMO_IMAGE: Record<Platform, string | undefined> = {
     "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=640&q=80",
   x: undefined,
 };
+
+type AssetPreview =
+  | { kind: "image"; src: string; alt: string; objectPosition?: "top" | "center"; fileId?: string }
+  | { kind: "meme"; label: string };
+
+type Toast = {
+  id: number;
+  tone: "success" | "error" | "info";
+  message: string;
+};
+
+const INITIAL_ASSETS: AssetPreview[] = [
+  {
+    kind: "image",
+    src: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80",
+    alt: "Code snippet",
+  },
+  {
+    kind: "image",
+    src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+    alt: "Developer selfie",
+    objectPosition: "top",
+  },
+  {
+    kind: "image",
+    src: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80",
+    alt: "Pizza photo",
+  },
+  { kind: "meme", label: "meme.jpg" },
+];
 
 const REFINE_ACTIONS: {
   action: RefineAction;
@@ -57,6 +91,7 @@ const REFINE_ACTIONS: {
 ];
 
 export function CampaignStudio() {
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [raw, setRaw] = useState(
     "robiłem apkę całą noc, błędy w kodzie, zjadłem pizzę, fajne uczucie",
   );
@@ -67,43 +102,100 @@ export function CampaignStudio() {
   });
   const [results, setResults] = useState<Partial<Record<Platform, string>>>({});
   const [copied, setCopied] = useState<Platform | null>(null);
-  const [syncKey, setSyncKey] = useState("");
+  const [assets, setAssets] = useState<AssetPreview[]>(INITIAL_ASSETS);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [refining, setRefining] = useState<Partial<Record<Platform, boolean>>>({});
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   const anySelected = PLATFORM_ORDER.some((platform) => selected[platform]);
   const activePlatforms = PLATFORM_ORDER.filter((platform) => selected[platform]);
-
-  const currentKey = `${raw}__${activePlatforms.join(",")}`;
-  if (currentKey !== syncKey) {
-    setSyncKey(currentKey);
-    const core = extractCore(raw);
-    const next: Partial<Record<Platform, string>> = {};
-    for (const platform of activePlatforms) {
-      next[platform] = composePost(platform, core);
-    }
-    setResults(next);
-  }
 
   function togglePlatform(platform: Platform) {
     setSelected((prev) => ({ ...prev, [platform]: !prev[platform] }));
   }
 
-  function applyRefine(platform: Platform, action: RefineAction) {
-    setResults((prev) => {
-      const current = prev[platform];
-      if (!current) return prev;
-      return { ...prev, [platform]: refine(platform, current, action) };
-    });
+  function pushToast(tone: Toast["tone"], message: string) {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, tone, message }]);
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 4500);
   }
 
-  function createContent() {
-    setResults((prev) => {
-      const next = { ...prev };
-      for (const platform of activePlatforms) {
-        const current = next[platform];
-        if (current) next[platform] = refine(platform, current, "hook");
+  async function applyRefine(platform: Platform, action: RefineAction) {
+    const current = results[platform];
+    if (!current) {
+      pushToast("info", "Najpierw wygeneruj treść posta.");
+      return;
+    }
+
+    setRefining((prev) => ({ ...prev, [platform]: true }));
+    try {
+      const response = await refinePost({ platform, text: current, action });
+      setResults((prev) => ({ ...prev, [platform]: response.text }));
+      pushToast("success", "Treść została dopracowana.");
+    } catch (error) {
+      pushToast("error", getApiErrorMessage(error));
+    } finally {
+      setRefining((prev) => ({ ...prev, [platform]: false }));
+    }
+  }
+
+  async function createContent() {
+    if (!anySelected) {
+      pushToast("info", "Wybierz przynajmniej jedną platformę.");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await generatePosts({
+        raw,
+        platforms: activePlatforms,
+        file_ids: uploadedFiles.map((file) => file.id),
+      });
+      setResults(response.posts);
+      const generatedCount = Object.keys(response.posts).length;
+      if (generatedCount > 0) pushToast("success", `Wygenerowano ${generatedCount} posty.`);
+      for (const [platform, message] of Object.entries(response.errors)) {
+        if (message) pushToast("error", `${PLATFORM_META[platform as Platform].name}: ${message}`);
       }
-      return next;
-    });
+      if (generatedCount === 0 && Object.keys(response.errors).length === 0) {
+        pushToast("error", "Backend nie zwrócił żadnej treści.");
+      }
+    } catch (error) {
+      pushToast("error", getApiErrorMessage(error));
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  async function handleUpload(files: FileList | null) {
+    const nextFiles = Array.from(files ?? []);
+    if (nextFiles.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      const response = await uploadFiles(nextFiles);
+      setUploadedFiles((prev) => [...prev, ...response.files]);
+      setAssets((prev) => [
+        ...response.files.map((file) => ({
+          kind: "image" as const,
+          src: file.url,
+          alt: file.filename,
+          fileId: file.id,
+        })),
+        ...prev,
+      ]);
+      pushToast("success", `Dodano ${response.files.length} pliki.`);
+    } catch (error) {
+      pushToast("error", getApiErrorMessage(error));
+    } finally {
+      setIsUploading(false);
+      if (uploadInputRef.current) uploadInputRef.current.value = "";
+    }
   }
 
   async function copyPost(platform: Platform) {
@@ -111,6 +203,7 @@ export function CampaignStudio() {
     if (!text) return;
     await navigator.clipboard.writeText(text);
     setCopied(platform);
+    pushToast("success", "Post skopiowany do schowka.");
     window.setTimeout(() => setCopied(null), 1500);
   }
 
@@ -184,29 +277,35 @@ export function CampaignStudio() {
               </span>
               <button
                 type="button"
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={isUploading}
                 className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
               >
-                <Plus size={12} /> Upload
+                <Plus size={12} /> {isUploading ? "Uploading" : "Upload"}
               </button>
+              <input
+                ref={uploadInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml,image/heic,image/heif"
+                multiple
+                className="hidden"
+                onChange={(event) => handleUpload(event.target.files)}
+              />
             </div>
             <div className="flex-1 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 p-4 grid grid-cols-2 gap-3">
-              <AssetThumb
-                kind="image"
-                src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80"
-                alt="Code snippet"
-              />
-              <AssetThumb
-                kind="image"
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80"
-                alt="Developer selfie"
-                objectPosition="top"
-              />
-              <AssetThumb
-                kind="image"
-                src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80"
-                alt="Pizza photo"
-              />
-              <AssetThumb kind="meme" label="meme.jpg" />
+              {assets.slice(0, 4).map((asset, index) =>
+                asset.kind === "image" ? (
+                  <AssetThumb
+                    key={asset.fileId ?? `${asset.src}-${index}`}
+                    kind="image"
+                    src={asset.src}
+                    alt={asset.alt}
+                    objectPosition={asset.objectPosition}
+                  />
+                ) : (
+                  <AssetThumb key={`${asset.label}-${index}`} kind="meme" label={asset.label} />
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -263,7 +362,8 @@ export function CampaignStudio() {
                           key={action}
                           type="button"
                           onClick={() => applyRefine(platform, action)}
-                          className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                          disabled={isGenerating || refining[platform]}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 disabled:pointer-events-none disabled:opacity-50"
                         >
                           {icon}
                           {label}
@@ -297,13 +397,31 @@ export function CampaignStudio() {
           <button
             type="button"
             onClick={createContent}
-            className="mt-6 w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 cursor-pointer"
+            disabled={isGenerating}
+            className="mt-6 w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 cursor-pointer disabled:pointer-events-none disabled:opacity-70"
           >
             <Sparkle size={16} weight="bold" />
-            Utwórz treść posta
+            {isGenerating ? "Tworzę treść posta..." : "Utwórz treść posta"}
           </button>
         </div>
       ) : null}
+
+      <div className="fixed bottom-4 right-4 z-50 flex w-[min(360px,calc(100vw-2rem))] flex-col gap-2">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`rounded-lg border px-4 py-3 text-sm font-medium shadow-lg ${
+              toast.tone === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                : toast.tone === "error"
+                  ? "border-red-200 bg-red-50 text-red-800"
+                  : "border-blue-200 bg-blue-50 text-blue-800"
+            }`}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
     </>
   );
 }
