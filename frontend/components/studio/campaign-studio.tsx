@@ -95,6 +95,17 @@ export function CampaignStudio() {
     });
   }
 
+  function createContent() {
+    setResults((prev) => {
+      const next = { ...prev };
+      for (const platform of activePlatforms) {
+        const current = next[platform];
+        if (current) next[platform] = refine(platform, current, "hook");
+      }
+      return next;
+    });
+  }
+
   async function copyPost(platform: Platform) {
     const text = results[platform];
     if (!text) return;
@@ -282,6 +293,15 @@ export function CampaignStudio() {
               );
             })}
           </div>
+
+          <button
+            type="button"
+            onClick={createContent}
+            className="mt-6 w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
+            <Sparkle size={16} weight="bold" />
+            Utwórz treść posta
+          </button>
         </div>
       ) : null}
     </>
