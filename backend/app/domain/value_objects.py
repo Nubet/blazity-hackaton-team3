@@ -1,6 +1,21 @@
 from dataclasses import dataclass
+from enum import StrEnum
 
 from .exceptions import UnsupportedFileTypeError
+
+
+class Platform(StrEnum):
+    LINKEDIN = "linkedin"
+    INSTAGRAM = "instagram"
+    TWITTER = "twitter"
+
+
+class CampaignStatus(StrEnum):
+    PENDING = "pending"
+    GENERATING = "generating"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
 
 ALLOWED_IMAGE_TYPES: dict[str, str] = {
     "image/jpeg": "jpg",
