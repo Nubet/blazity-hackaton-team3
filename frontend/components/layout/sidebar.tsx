@@ -1,8 +1,8 @@
 import {
   CaretUpDown,
-  ChartLineUp,
+  ClockCounterClockwise,
   House,
-  MagicWand,
+  Megaphone,
   Shapes,
 } from "@phosphor-icons/react/dist/ssr";
 import { SidebarNavItem } from "./sidebar-nav-item";
@@ -32,13 +32,13 @@ export function Sidebar() {
           />
           <SidebarNavItem
             href="#"
-            icon={<MagicWand size={18} />}
-            label="Campaigns"
+            icon={<Megaphone size={18} />}
+            label="Brand Voice"
           />
           <SidebarNavItem
             href="#"
-            icon={<ChartLineUp size={18} />}
-            label="Analytics"
+            icon={<ClockCounterClockwise size={18} />}
+            label="History"
           />
         </nav>
 
