@@ -4,7 +4,7 @@ import { TopHeader } from "./top-header";
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className="h-screen flex overflow-hidden w-full">
       <Sidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <TopHeader />
@@ -12,6 +12,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <div className="max-w-6xl mx-auto space-y-8 pb-12">{children}</div>
         </main>
       </div>
-    </>
+    </div>
   );
 }
