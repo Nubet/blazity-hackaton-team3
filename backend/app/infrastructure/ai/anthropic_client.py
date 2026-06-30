@@ -1,13 +1,19 @@
-import json
-from uuid import uuid4
-
 from anthropic import AsyncAnthropic
+from pydantic import BaseModel
 
 from app.application.ports import ContentGenerator
-from app.application.prompts.platform_prompts import SYSTEM_PROMPT, build_user_prompt
-from app.domain.entities import GeneratedContent
-from app.domain.exceptions import ContentGenerationError
-from app.domain.value_objects import Platform
+from app.application.prompts.platform_prompts import SYSTEM_PROMPT, build_generate_prompt
+from app.application.prompts.refine_prompts import (
+    REFINE_SYSTEM_PROMPT,
+    build_refine_prompt,
+)
+from app.domain.entities import GeneratedPost
+from app.domain.exceptions import ContentGenerationError, RefineError
+from app.domain.value_objects import Platform, RefineAction
+
+
+class _PostOutput(BaseModel):
+    text: str
 
 
 class AnthropicContentGenerator(ContentGenerator):
@@ -30,62 +36,50 @@ class AnthropicContentGenerator(ContentGenerator):
         platform: Platform,
         raw_text: str,
         image_urls: list[str],
-    ) -> GeneratedContent:
+    ) -> GeneratedPost:
+        text = await self._call(
+            system=SYSTEM_PROMPT,
+            user=build_generate_prompt(raw_text, image_urls, platform),
+            on_error=lambda reason: ContentGenerationError(platform=platform.value, reason=reason),
+        )
+        return GeneratedPost(platform=platform, text=self._clamp(platform, text))
+
+    async def refine(
+        self,
+        platform: Platform,
+        text: str,
+        action: RefineAction,
+    ) -> GeneratedPost:
+        result = await self._call(
+            system=REFINE_SYSTEM_PROMPT,
+            user=build_refine_prompt(platform, text, action),
+            on_error=lambda reason: RefineError(
+                platform=platform.value, action=action.value, reason=reason
+            ),
+        )
+        return GeneratedPost(platform=platform, text=self._clamp(platform, result))
+
+    async def _call(self, system: str, user: str, on_error) -> str:
         try:
-            response = await self._client.messages.create(
+            response = await self._client.messages.parse(
                 model=self._model,
                 max_tokens=self._max_tokens,
                 temperature=self._temperature,
-                system=SYSTEM_PROMPT,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": build_user_prompt(raw_text, image_urls, platform),
-                    }
-                ],
+                system=system,
+                messages=[{"role": "user", "content": user}],
+                output_format=_PostOutput,
             )
         except Exception as exc:
-            raise ContentGenerationError(platform=platform.value, reason=str(exc)) from exc
+            raise on_error(str(exc)) from exc
 
-        text = self._extract_text(response)
-        payload = self._parse_json(text, platform)
-
-        return GeneratedContent(
-            id=uuid4(),
-            platform=platform,
-            copy=str(payload.get("copy", "")).strip(),
-            hashtags=[
-                str(tag).lstrip("#").strip().lower()
-                for tag in payload.get("hashtags", [])
-                if str(tag).strip()
-            ],
-            asset_curation=str(payload.get("asset_curation", "")).strip(),
-        )
+        parsed = response.parsed_output
+        if parsed is None or not parsed.text.strip():
+            raise on_error("Model returned empty text")
+        return parsed.text.strip()
 
     @staticmethod
-    def _extract_text(response) -> str:
-        parts: list[str] = []
-        for block in response.content:
-            if getattr(block, "type", None) == "text":
-                parts.append(block.text)
-        return "".join(parts).strip()
-
-    @staticmethod
-    def _parse_json(text: str, platform: Platform) -> dict:
-        cleaned = text.strip()
-        if cleaned.startswith("```"):
-            cleaned = cleaned.strip("`")
-            if cleaned.lower().startswith("json"):
-                cleaned = cleaned[4:].strip()
-        start = cleaned.find("{")
-        end = cleaned.rfind("}")
-        if start == -1 or end == -1:
-            raise ContentGenerationError(
-                platform=platform.value, reason=f"Model returned non-JSON output: {text[:200]}"
-            )
-        try:
-            return json.loads(cleaned[start : end + 1])
-        except json.JSONDecodeError as exc:
-            raise ContentGenerationError(
-                platform=platform.value, reason=f"Invalid JSON from model: {exc}"
-            ) from exc
+    def _clamp(platform: Platform, text: str) -> str:
+        limit = platform.char_limit
+        if len(text) <= limit:
+            return text
+        return text[:limit].rstrip()
